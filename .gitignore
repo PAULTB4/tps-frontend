@@ -1,0 +1,67 @@
+# === Dependencies ===
+node_modules/
+.pnp
+.pnp.js
+
+# === Build Output ===
+dist/
+dist-ssr/
+build/
+*.local
+
+# === Environment Variables ===
+.env
+.env.local
+.env.*.local
+
+# === Logs ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# === Editor & IDE ===
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+
+# === Testing ===
+coverage/
+*.lcov
+
+# === Caches ===
+.eslintcache
+.stylelintcache
+.vite/
+*.tsbuildinfo
+
+# === Temporary ===
+*.tmp
+*.temp
+.cache/
+
+# === Prototype Assets (local reference only) ===
+prototipo.png
+"diseño actual.png"
+stitch_siscon_enosa_dashboard_prototype/
+
+# === Misc ===
+*.pem
+*.tgz
+*.tar.gz
+
+# === Package Managers ===
+yarn.lock
+pnpm-lock.yaml
