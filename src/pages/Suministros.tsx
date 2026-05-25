@@ -199,6 +199,7 @@ export function SuministroForm() {
       </div>
       <div className="suministros-formCard">
         <Input label="Código suministro" required value={form.codigoSuministro} onChange={(e) => setForm({ ...form, codigoSuministro: e.target.value })} />
+        <p className="zonas-helperText">Identificador único del punto de suministro.</p>
         <p className="text-xs text-stitch-outline-variant -mt-2">El código de suministro debe ser único.</p>
         <Select label="Tipo cliente" required options={tipoClienteOptions} value={form.tipoCliente} onChange={(e) => setForm({ ...form, tipoCliente: e.target.value })} />
         <Input label="Dirección referencial" required value={form.direccionReferencial} onChange={(e) => setForm({ ...form, direccionReferencial: e.target.value })} />

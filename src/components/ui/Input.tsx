@@ -21,7 +21,9 @@ export function Input({ label, error, icon, className = '', ...props }: Props) {
         <input
           className={`block w-full ${
             icon ? 'pl-9' : 'px-3'
-          } pr-3 py-[10px] bg-stitch-surface-container-lowest border border-stitch-outline-variant rounded-lg text-sm text-stitch-on-surface placeholder-stitch-outline-variant focus:ring-2 focus:ring-stitch-primary focus:outline-none transition-shadow ${className}`}
+          } pr-3 py-[10px] bg-stitch-surface-container-lowest border border-stitch-outline-variant rounded-lg text-sm text-stitch-on-surface placeholder-stitch-outline-variant focus:ring-2 focus:ring-stitch-primary focus:outline-none transition-shadow ${
+            props.readOnly ? 'bg-stitch-surface-container-high text-stitch-outline cursor-default border-transparent' : ''
+          } ${className}`}
           {...props}
         />
       </div>

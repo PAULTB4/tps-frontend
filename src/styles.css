@@ -1692,3 +1692,13 @@ input, select, textarea { outline: none; }
   .dashboard-sectionHeader,
   .zonas-formActions { align-items: stretch; flex-direction: column; }
 }
+
+.zonas-helperText {
+  margin-top: 6px;
+  margin-left: 2px;
+  color: #757682;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: .02em;
+}

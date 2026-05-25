@@ -339,8 +339,8 @@ export function ZonaForm() {
         <Select label="Provincia" required value={form.provincia} options={provinciasOptions} onChange={handleProvinciaChange} disabled={!form.departamento} />
         <Select label="Distrito" required value={form.distrito} options={distritosOptions} onChange={handleDistritoChange} disabled={!form.provincia} />
         <Input label="Nombre de zona" required value={form.nombreZona} onChange={(e) => setForm({ ...form, nombreZona: e.target.value })} />
-        <Input label="Código de zona" required value={form.codigoZona} onChange={(e) => setForm({ ...form, codigoZona: e.target.value })} />
-        <p className="text-xs text-stitch-outline-variant -mt-2">Código sugerido automáticamente. Puede editarse, pero debe ser único.</p>
+        <Input label="Código de zona" required value={form.codigoZona} readOnly />
+        <p className="zonas-helperText">Generado automáticamente según la ubicación territorial.</p>
         <Select label="Estado" required value={form.estado} options={zonaEstadoOptions} onChange={(e) => setForm({ ...form, estado: e.target.value })} />
       </div>
 
