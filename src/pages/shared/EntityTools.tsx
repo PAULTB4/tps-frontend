@@ -28,5 +28,44 @@ export function EntityForm({ title, resource, fields, initial = {} }: { title: s
     try { await crudService(resource).create(form); setMessage('Registro guardado correctamente.'); setTimeout(() => navigate(`/${resource}`), 500); } catch { setMessage('No se pudo guardar. Revisá los datos o la API.'); } finally { setLoading(false); }
   }
 
-  return <form onSubmit={onSubmit} className="mx-auto max-w-4xl space-y-5"><div><p className="text-sm font-bold text-copper">Nuevo registro</p><h2 className="serif text-4xl font-bold text-enosa-950">{title}</h2></div><div className="grid gap-4 rounded-3xl bg-white p-6 shadow-panel md:grid-cols-2">{fields.map((field) => field.options ? <Select key={field.name} label={field.label} required={field.required} options={field.options} value={form[field.name] ?? ''} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })} /> : <Input key={field.name} label={field.label} type={field.type ?? 'text'} required={field.required} value={form[field.name] ?? ''} onChange={(e) => setForm({ ...form, [field.name]: e.target.value })} />)}</div>{message && <Toast type={message.startsWith('No') ? 'error' : 'success'} message={message} />}<div className="flex gap-3"><Button disabled={loading}>{loading ? 'Guardando...' : 'Guardar'}</Button><Button type="button" variant="secondary" onClick={() => navigate(-1)}>Cancelar</Button></div></form>;
+  return (
+    <form onSubmit={onSubmit} className="zonas-formPage">
+      <div className="zonas-formHeader">
+        <div>
+          <p>Nuevo registro territorial</p>
+          <h2>{title}</h2>
+          <span>Complete la ubicación y el código operativo de la zona.</span>
+        </div>
+      </div>
+
+      <div className="zonas-formCard">
+        {fields.map((field) => field.options ? (
+          <Select
+            key={field.name}
+            label={field.label}
+            required={field.required}
+            options={field.options}
+            value={form[field.name] ?? ''}
+            onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+          />
+        ) : (
+          <Input
+            key={field.name}
+            label={field.label}
+            type={field.type ?? 'text'}
+            required={field.required}
+            value={form[field.name] ?? ''}
+            onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+          />
+        ))}
+      </div>
+
+      {message && <Toast type={message.startsWith('No') ? 'error' : 'success'} message={message} />}
+
+      <div className="zonas-formActions">
+        <Button disabled={loading} className="zonas-applyButton">{loading ? 'Guardando...' : 'Guardar zona'}</Button>
+        <Button type="button" variant="secondary" className="zonas-clearButton" onClick={() => navigate(-1)}>Cancelar</Button>
+      </div>
+    </form>
+  );
 }

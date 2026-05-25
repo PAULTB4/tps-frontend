@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { getCurrentUserName, logout } from '../services/api';
+import { NavLink, Outlet } from 'react-router-dom';
+import { EventAlert } from '../components/ui/EventAlert';
+import { getCurrentUserName } from '../services/api';
 
 const nav = [
   ['/dashboard', 'dashboard', 'Dashboard'],
@@ -15,7 +16,6 @@ const nav = [
 ];
 
 export function AppLayout() {
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className={`app-shell ${sidebarOpen ? 'is-sidebar-open' : ''}`}>
@@ -51,9 +51,6 @@ export function AppLayout() {
             <button type="button" aria-label="Configuración">
               <span className="material-symbols-outlined">settings</span>
             </button>
-            <button type="button" aria-label="Salir" onClick={() => { logout(); navigate('/login'); }}>
-              <span className="material-symbols-outlined">logout</span>
-            </button>
           </div>
         </footer>
       </aside>
@@ -64,7 +61,10 @@ export function AppLayout() {
           </button>
           <div className="app-search"><span className="material-symbols-outlined">search</span><span>Buscar en SISCON...</span></div>
         </header>
-        <div className="app-content"><Outlet /></div>
+        <div className="app-content">
+          <EventAlert />
+          <Outlet />
+        </div>
       </main>
     </div>
   );
