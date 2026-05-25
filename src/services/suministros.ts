@@ -1,13 +1,13 @@
 import { api } from './api';
 import { cleanParams, extractMeta, extractRows } from '../utils/pagination';
-import type { PaginatedResponse } from '../types';
+import type { PaginatedResponse, Suministro } from '../types';
 
 type Query = Record<string, string | number | undefined>;
 
 export const suministrosService = {
   list: (params?: Query) =>
-    api.get<PaginatedResponse<unknown>>('/suministros', { params: cleanParams(params) }).then((r) => ({
-      data: extractRows<unknown>(r.data),
+    api.get<PaginatedResponse<Suministro>>('/suministros', { params: cleanParams(params) }).then((r) => ({
+      data: extractRows<Suministro>(r.data),
       meta: extractMeta(r.data),
     })),
   create: (payload: unknown) => api.post('/suministros', payload).then((r) => r.data),

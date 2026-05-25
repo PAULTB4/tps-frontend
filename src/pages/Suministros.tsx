@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { type ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -9,6 +9,7 @@ import { suministrosService } from '../services/suministros';
 import { crudService } from '../services/crud';
 import { useAsync } from '../hooks/useAsync';
 import { extractRows } from '../utils/pagination';
+import { publishEventAlert } from '../utils/eventAlert';
 import type { Suministro, Zona, TableColumn } from '../types';
 
 const tipoClienteOptions = [
@@ -162,6 +163,32 @@ export function SuministroForm() {
   const zonas = extractRows<Zona>(zonasRes ?? []);
   const zonasOptions = zonas.map((z) => ({ label: z.nombreZona || z.codigoZona || `Zona ${z.id}`, value: String(z.id) }));
 
+  const { data: allSuministrosRes } = useAsync(() => suministrosService.list({ limit: '500' }), []);
+  const allSuministros = allSuministrosRes?.data ?? [];
+
+  function suggestCodigoSuministro(): string {
+    const nextNumber = allSuministros.reduce((max, s) => {
+      const match = s.codigoSuministro?.match(/^SUM-(\d{5,})$/i);
+      const n = match ? Number(match[1]) : Number.NaN;
+      return Number.isFinite(n) ? Math.max(max, n) : max;
+    }, 0) + 1;
+
+    return `SUM-${String(nextNumber).padStart(5, '0')}`;
+  }
+
+  useEffect(() => {
+    if (!allSuministrosRes) return;
+    setForm((prev) => prev.codigoSuministro ? prev : { ...prev, codigoSuministro: suggestCodigoSuministro() });
+  }, [allSuministrosRes]);
+
+  function handleZonaChange(e: ChangeEvent<HTMLSelectElement>) {
+    const zonaId = e.target.value;
+    setForm((prev) => ({
+      ...prev,
+      zonaId,
+    }));
+  }
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
@@ -169,8 +196,11 @@ export function SuministroForm() {
     setIsError(false);
     try {
       await suministrosService.create({ ...form, zonaId: Number(form.zonaId) });
-      setMessage('Registro guardado correctamente.');
-      setTimeout(() => navigate('/suministros'), 500);
+      publishEventAlert({
+        type: 'success',
+        message: `Suministro ${form.codigoSuministro} registrado correctamente.`,
+      });
+      navigate('/suministros');
     } catch (error: any) {
       const status = error?.response?.status;
       const data = error?.response?.data;
@@ -189,25 +219,24 @@ export function SuministroForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="suministros-formPage">
-      <div className="suministros-formHeader">
+    <form onSubmit={onSubmit} className="zonas-formPage">
+      <div className="zonas-formHeader">
         <div>
-          <p>Nuevo registro</p>
+          <p>Nuevo registro operativo</p>
           <h2>Nuevo suministro</h2>
           <span>Completá los datos del punto de suministro eléctrico.</span>
         </div>
       </div>
-      <div className="suministros-formCard">
-        <Input label="Código suministro" required value={form.codigoSuministro} onChange={(e) => setForm({ ...form, codigoSuministro: e.target.value })} />
-        <p className="zonas-helperText">Identificador único del punto de suministro.</p>
-        <p className="text-xs text-stitch-outline-variant -mt-2">El código de suministro debe ser único.</p>
+      <div className="zonas-formCard">
+        <Select label="Zona" required options={zonasOptions} value={form.zonaId} onChange={handleZonaChange} />
         <Select label="Tipo cliente" required options={tipoClienteOptions} value={form.tipoCliente} onChange={(e) => setForm({ ...form, tipoCliente: e.target.value })} />
         <Input label="Dirección referencial" required value={form.direccionReferencial} onChange={(e) => setForm({ ...form, direccionReferencial: e.target.value })} />
-        <Select label="Zona" required options={zonasOptions} value={form.zonaId} onChange={(e) => setForm({ ...form, zonaId: e.target.value })} />
         <Select label="Estado" required options={[{ label: 'Activo', value: 'ACTIVO' }, { label: 'Inactivo', value: 'INACTIVO' }]} value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} />
+        <Input label="Código suministro" required value={form.codigoSuministro} readOnly />
+        <p className="zonas-helperText">Generado automáticamente con formato SUM-00000 según los registros existentes.</p>
       </div>
       {message && <Toast type={isError ? 'error' : 'success'} message={message} />}
-      <div className="suministros-formActions">
+      <div className="zonas-formActions">
         <Button disabled={loading} className="suministros-applyButton">{loading ? 'Guardando...' : 'Guardar suministro'}</Button>
         <Button type="button" variant="secondary" className="suministros-clearButton" onClick={() => navigate(-1)}>Cancelar</Button>
       </div>

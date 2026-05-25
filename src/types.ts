@@ -1,7 +1,23 @@
 import type React from 'react';
 
-export type Estado = 'ACTIVO' | 'INACTIVO' | 'OBSERVADO' | string;
+export type Estado = 'ACTIVO' | 'INACTIVO' | 'OBSERVADO' | 'PENDIENTE' | string;
 export type Option = { label: string; value: string };
+
+export type Zona = {
+  id: number | string;
+  nombreZona?: string;
+  codigoZona?: string;
+};
+
+export type Suministro = {
+  id?: number | string;
+  codigoSuministro: string;
+  tipoCliente: string;
+  direccionReferencial: string;
+  zonaId: number | string;
+  zona?: Zona;
+  estado: Estado;
+};
 
 export type PaginationMeta = {
   total: number;
@@ -23,14 +39,41 @@ export type PaginatedResponse<T> = {
 export type Lectura = {
   id?: number | string;
   medidorId: number | string;
+  numeroMedidor?: string;
   periodoId: number | string;
+  periodoLabel?: string;
+  anio?: number;
+  mes?: number;
   suministroId?: number | string;
+  codigoSuministro?: string;
+  zonaId?: number | string;
+  zona?: string;
+  distrito?: string;
   lecturaAnterior: number;
   lecturaActual: number;
   consumoKwh?: number;
   fechaLectura?: string;
   observacion?: string;
+  estadoLectura?: string;
   estado?: Estado;
+};
+
+export type LecturaResponse = {
+  id: number;
+  medidorId: number;
+  numeroMedidor: string;
+  suministroId: number;
+  codigoSuministro: string;
+  periodoId: number;
+  periodoLabel: string;
+  anio: number;
+  mes: number;
+  fechaLectura: string;
+  lecturaAnterior: number;
+  lecturaActual: number;
+  consumoKwh: number;
+  estadoLectura: 'VALIDA' | 'OBSERVADA' | 'CORREGIDA' | 'ANULADA';
+  observacion?: string;
 };
 
 export type LecturasParametros = {

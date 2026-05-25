@@ -17,6 +17,7 @@ type Props<T> = {
   onPageChange?: (page: number) => void;
   onLimitChange?: (limit: number) => void;
   actions?: (row: T) => React.ReactNode;
+  entityLabel?: string;
 };
 
 export function DataTable<T extends { id?: string | number }>({
@@ -28,6 +29,7 @@ export function DataTable<T extends { id?: string | number }>({
   onPageChange,
   onLimitChange,
   actions,
+  entityLabel = 'registros',
 }: Props<T>) {
   const start = meta ? (meta.page - 1) * meta.limit + 1 : 0;
   const end = meta ? Math.min(meta.page * meta.limit, meta.total) : 0;
@@ -35,10 +37,10 @@ export function DataTable<T extends { id?: string | number }>({
   const limitOptions = [10, 20, 50, 100];
   const summary = meta
     ? meta.total === 0
-      ? 'Sin registros'
+      ? `Sin ${entityLabel}`
       : meta.total === 1
-        ? '1 registro encontrado'
-        : `Mostrando ${start}–${end} de ${meta.total} registros`
+        ? `1 ${entityLabel} encontrado`
+        : `Mostrando ${start} a ${end} de ${meta.total} ${entityLabel}`
     : '';
 
   return (

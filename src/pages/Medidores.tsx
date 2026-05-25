@@ -9,6 +9,7 @@ import { medidoresService } from '../services/medidores';
 import { crudService } from '../services/crud';
 import { useAsync } from '../hooks/useAsync';
 import { extractRows } from '../utils/pagination';
+import { publishEventAlert } from '../utils/eventAlert';
 
 export function Medidores() {
   const [draft, setDraft] = useState({
@@ -155,39 +156,74 @@ export function MedidorForm() {
   const suministros = extractRows(suministrosRes ?? []);
   const suministroOptions = suministros.map((s: any) => ({ label: s.codigoSuministro || `SUM-${s.id}`, value: String(s.id) }));
 
+  const { data: allMedidoresRes } = useAsync(() => medidoresService.list({ limit: '500' }), []);
+  const allMedidores = allMedidoresRes?.data ?? [];
+
+  function suggestNumeroMedidor(): string {
+    const nextNumber = allMedidores.reduce((max, medidor: any) => {
+      const match = medidor.numeroMedidor?.match(/^MED-(\d{6,})$/i);
+      const n = match ? Number(match[1]) : Number.NaN;
+      return Number.isFinite(n) ? Math.max(max, n) : max;
+    }, 0) + 1;
+
+    return `MED-${String(nextNumber).padStart(6, '0')}`;
+  }
+
+  useEffect(() => {
+    if (!allMedidoresRes) return;
+    setForm((prev) => prev.numeroMedidor ? prev : { ...prev, numeroMedidor: suggestNumeroMedidor() });
+  }, [allMedidoresRes]);
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setMessage('');
     try {
-      await crudService('medidores').create(form);
-      setMessage('Registro guardado correctamente.');
-      setTimeout(() => navigate('/medidores'), 500);
-    } catch {
-      setMessage('No se pudo guardar. Revisá los datos o la API.');
+      await medidoresService.create({ ...form, suministroId: Number(form.suministroId) });
+      publishEventAlert({
+        type: 'success',
+        message: `Medidor ${form.numeroMedidor} registrado correctamente.`,
+      });
+      navigate('/medidores');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      const apiMessage = data?.message;
+
+      if (status === 409 && apiMessage) {
+        setMessage(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage);
+      } else if (apiMessage) {
+        setMessage(Array.isArray(apiMessage) ? apiMessage[0] : apiMessage);
+      } else {
+        setMessage('No se pudo guardar. Revisá los datos e intentá nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <p className="text-sm font-bold text-copper">Nuevo registro</p>
-        <h2 className="serif text-4xl font-bold text-enosa-950">Nuevo medidor</h2>
+    <form onSubmit={onSubmit} className="zonas-formPage">
+      <div className="zonas-formHeader">
+        <div>
+          <p>Nuevo registro operativo</p>
+          <h2>Nuevo medidor</h2>
+          <span>Completá los datos del equipo de medición instalado.</span>
+        </div>
       </div>
-      <div className="grid gap-4 rounded-3xl bg-white p-6 shadow-panel md:grid-cols-2">
-        <Input label="Número de medidor" required value={form.numeroMedidor} onChange={(e) => setForm({ ...form, numeroMedidor: e.target.value })} />
+      <div className="zonas-formCard">
         <Select label="Suministro ID" required options={suministroOptions} value={form.suministroId} onChange={(e) => setForm({ ...form, suministroId: e.target.value })} />
+        <Input label="Número de medidor" required value={form.numeroMedidor} readOnly />
+        <p className="zonas-helperText">Generado automáticamente con formato MED-000000 según los registros existentes.</p>
         <Input label="Marca" required value={form.marca} onChange={(e) => setForm({ ...form, marca: e.target.value })} />
         <Input label="Modelo" required value={form.modelo} onChange={(e) => setForm({ ...form, modelo: e.target.value })} />
         <Input label="Fecha instalación" type="date" required value={form.fechaInstalacion} onChange={(e) => setForm({ ...form, fechaInstalacion: e.target.value })} />
         <Select label="Estado" required options={[{ label: 'Activo', value: 'ACTIVO' }, { label: 'En revisión', value: 'EN_REVISION' }, { label: 'Retirado', value: 'RETIRADO' }]} value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} />
       </div>
-      {message && <Toast type={message.startsWith('No') ? 'error' : 'success'} message={message} />}
-      <div className="flex gap-3">
-        <Button disabled={loading}>{loading ? 'Guardando...' : 'Guardar'}</Button>
-        <Button type="button" variant="secondary" onClick={() => navigate(-1)}>Cancelar</Button>
+      {message && <Toast type="error" message={message} />}
+      <div className="zonas-formActions">
+        <Button disabled={loading} className="medidores-applyButton">{loading ? 'Guardando...' : 'Guardar medidor'}</Button>
+        <Button type="button" variant="secondary" className="medidores-clearButton" onClick={() => navigate(-1)}>Cancelar</Button>
       </div>
     </form>
   );
