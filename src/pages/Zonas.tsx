@@ -309,8 +309,16 @@ export function ZonaForm() {
         message: `Zona operativa ${form.nombreZona} registrada correctamente.`,
       });
       navigate('/zonas');
-    } catch {
-      setMessage('No se pudo guardar. Revisá que el código de zona sea único.');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+
+      if (status === 409 && data?.message) {
+        const msg = Array.isArray(data.message) ? data.message[0] : data.message;
+        setMessage(msg);
+      } else {
+        setMessage('No se pudo guardar. Revisá los datos e intentá nuevamente.');
+      }
     } finally {
       setLoading(false);
     }
@@ -332,6 +340,7 @@ export function ZonaForm() {
         <Select label="Distrito" required value={form.distrito} options={distritosOptions} onChange={handleDistritoChange} disabled={!form.provincia} />
         <Input label="Nombre de zona" required value={form.nombreZona} onChange={(e) => setForm({ ...form, nombreZona: e.target.value })} />
         <Input label="Código de zona" required value={form.codigoZona} onChange={(e) => setForm({ ...form, codigoZona: e.target.value })} />
+        <p className="text-xs text-stitch-outline-variant -mt-2">Código sugerido automáticamente. Puede editarse, pero debe ser único.</p>
         <Select label="Estado" required value={form.estado} options={zonaEstadoOptions} onChange={(e) => setForm({ ...form, estado: e.target.value })} />
       </div>
 
