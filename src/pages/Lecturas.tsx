@@ -4,20 +4,14 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
-import { Table } from '../components/ui/Table';
 import { Toast } from '../components/ui/Toast';
+import { DataTable } from '../components/tables/DataTable';
 import { lecturasService } from '../services/lecturas';
 import { crudService } from '../services/crud';
 import { useAsync } from '../hooks/useAsync';
-import { formatKwh, thisYear } from '../utils/format';
-import type { Lectura } from '../types';
-
-function extractRows(payload: unknown): unknown[] {
-  if (Array.isArray(payload)) return payload;
-  if (!payload || typeof payload !== 'object') return [];
-  const obj = payload as Record<string, unknown>;
-  return (Array.isArray(obj.data) ? obj.data : Array.isArray(obj.items) ? obj.items : []) as unknown[];
-}
+import { formatKwh } from '../utils/format';
+import { extractRows } from '../utils/pagination';
+import type { Lectura, PaginationMeta } from '../types';
 
 const mesesOptions = [
   { label: 'Enero', value: '1' }, { label: 'Febrero', value: '2' }, { label: 'Marzo', value: '3' },
@@ -28,8 +22,8 @@ const mesesOptions = [
 
 export function Lecturas() {
   const [draft, setDraft] = useState({
-    page: '1',
-    limit: '20',
+    page: 1,
+    limit: 20,
     anio: '',
     mes: '',
     zonaId: '',
@@ -38,8 +32,20 @@ export function Lecturas() {
 
   const [active, setActive] = useState(draft);
 
-  const { data: listData, loading, error } = useAsync(() => lecturasService.list(active), [active]);
-  const rows = extractRows(listData) as Lectura[];
+  const { data: listResponse, loading, error } = useAsync(
+    () => lecturasService.list({
+      page: String(active.page),
+      limit: String(active.limit),
+      anio: active.anio,
+      mes: active.mes,
+      zonaId: active.zonaId,
+      estadoLectura: active.estadoLectura,
+    }),
+    [active]
+  );
+
+  const rows = (listResponse?.data ?? []) as Lectura[];
+  const meta = listResponse?.meta;
 
   const { data: catalogs } = useAsync(async () => {
     const [zonasRes, periodosRes, paramsRes] = await Promise.all([
@@ -59,7 +65,7 @@ export function Lecturas() {
     value: String(z.id),
   }));
 
-  const aniosOptions = [...new Set((catalogs?.periodos ?? []).map((p: any) => p.anio))].sort((a, b) => b - a).map((a) => ({
+  const aniosOptions = [...new Set((catalogs?.periodos ?? []).map((p: any) => p.anio))].sort((a, b) => b - a).map((a: number) => ({
     label: String(a),
     value: String(a),
   }));
@@ -68,6 +74,24 @@ export function Lecturas() {
     label: e,
     value: e,
   }));
+
+  function applyFilters() {
+    setActive({ ...draft, page: 1 });
+  }
+
+  function clearFilters() {
+    const reset = { page: 1, limit: 20, anio: '', mes: '', zonaId: '', estadoLectura: '' };
+    setDraft(reset);
+    setActive(reset);
+  }
+
+  function handlePageChange(page: number) {
+    setActive((prev) => ({ ...prev, page }));
+  }
+
+  function handleLimitChange(limit: number) {
+    setActive((prev) => ({ ...prev, limit, page: 1 }));
+  }
 
   return (
     <div className="space-y-5">
@@ -85,21 +109,21 @@ export function Lecturas() {
           <Select label="Mes" value={draft.mes} options={[{ label: 'Todos', value: '' }, ...mesesOptions]} onChange={(e) => setDraft({ ...draft, mes: e.target.value })} />
           <Select label="Zona" value={draft.zonaId} options={[{ label: 'Todas', value: '' }, ...zonasOptions]} onChange={(e) => setDraft({ ...draft, zonaId: e.target.value })} />
           <Select label="Estado" value={draft.estadoLectura} options={[{ label: 'Todos', value: '' }, ...estadosOptions]} onChange={(e) => setDraft({ ...draft, estadoLectura: e.target.value })} />
-          <div className="flex items-end gap-2">
-            <Input label="Página" value={draft.page} onChange={(e) => setDraft({ ...draft, page: e.target.value })} className="w-20" />
-            <Input label="Límite" value={draft.limit} onChange={(e) => setDraft({ ...draft, limit: e.target.value })} className="w-20" />
-          </div>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => setActive(draft)}>Aplicar filtros</Button>
-          <Button variant="secondary" onClick={() => { const reset = { page: '1', limit: '20', anio: '', mes: '', zonaId: '', estadoLectura: '' }; setDraft(reset); setActive(reset); }}>Limpiar filtros</Button>
+          <Button onClick={applyFilters}>Aplicar filtros</Button>
+          <Button variant="secondary" onClick={clearFilters}>Limpiar filtros</Button>
         </div>
       </div>
 
       {error && <Toast type="error" message={error} />}
-      <Table
+
+      <DataTable
         loading={loading}
         data={rows}
+        meta={meta}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
         columns={[
           { header: 'Medidor', accessor: 'medidorId' },
           { header: 'Periodo', accessor: 'periodoId' },

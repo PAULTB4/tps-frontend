@@ -7,8 +7,8 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button({ className = '', variant = 'primary', icon, children, ...props }: Props) {
   const variants = {
-    primary: 'bg-stitch-primary text-stitch-on-primary hover:bg-stitch-primary/95 shadow-sm',
-    secondary: 'bg-white text-stitch-primary border border-stitch-outline-variant hover:bg-stitch-surface-container-low',
+    primary: 'bg-enosa-500 text-white hover:bg-enosa-700 shadow-sm',
+    secondary: 'bg-white text-enosa-500 border border-stitch-outline-variant hover:bg-stitch-surface-container-low',
     danger: 'bg-stitch-error text-white hover:bg-stitch-error/90',
   };
   return (

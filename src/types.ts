@@ -3,12 +3,21 @@ import type React from 'react';
 export type Estado = 'ACTIVO' | 'INACTIVO' | 'OBSERVADO' | string;
 export type Option = { label: string; value: string };
 
+export type PaginationMeta = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
 export type PaginatedResponse<T> = {
   items?: T[];
   data?: T[];
   total?: number;
   page?: number;
   limit?: number;
+  totalPages?: number;
+  meta?: PaginationMeta;
 };
 
 export type Lectura = {
