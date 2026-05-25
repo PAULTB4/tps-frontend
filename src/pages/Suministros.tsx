@@ -9,6 +9,7 @@ import { suministrosService } from '../services/suministros';
 import { crudService } from '../services/crud';
 import { useAsync } from '../hooks/useAsync';
 import { extractRows } from '../utils/pagination';
+import type { Suministro, Zona, TableColumn } from '../types';
 
 const tipoClienteOptions = [
   { label: 'Residencial', value: 'RESIDENCIAL' },
@@ -49,12 +50,12 @@ export function Suministros() {
     [active]
   );
 
-  const rows = (listResponse?.data ?? []) as any[];
+  const rows = listResponse?.data ?? [];
   const meta = listResponse?.meta;
 
   const { data: zonasRes } = useAsync(() => crudService('zonas').list() as Promise<unknown>, []);
-  const zonas = extractRows(zonasRes ?? []);
-  const zonasOptions = zonas.map((z: any) => ({ label: z.nombreZona || z.codigoZona || `Zona ${z.id}`, value: String(z.id) }));
+  const zonas = extractRows<Zona>(zonasRes ?? []);
+  const zonasOptions = zonas.map((z) => ({ label: z.nombreZona || z.codigoZona || `Zona ${z.id}`, value: String(z.id) }));
 
   function applyFilters() {
     setActive({ ...draft, page: 1 });
@@ -74,14 +75,14 @@ export function Suministros() {
     setActive((prev) => ({ ...prev, limit, page: 1 }));
   }
 
-  const columns = useMemo(() => [
-    { header: 'Código Suministro', accessor: 'codigoSuministro' as keyof any, className: 'suministros-codeCell' },
-    { header: 'Tipo Cliente', accessor: 'tipoCliente' as keyof any },
-    { header: 'Dirección Referencial', accessor: 'direccionReferencial' as keyof any, className: 'suministros-addressCell' },
-    { header: 'Zona', accessor: (row: any) => row.zona?.nombreZona ?? row.zona?.codigoZona ?? row.zonaId ?? '-' },
+  const columns = useMemo((): TableColumn<Suministro>[] => [
+    { header: 'Código Suministro', accessor: 'codigoSuministro', className: 'suministros-codeCell' },
+    { header: 'Tipo Cliente', accessor: 'tipoCliente' },
+    { header: 'Dirección Referencial', accessor: 'direccionReferencial', className: 'suministros-addressCell' },
+    { header: 'Zona', accessor: (row) => row.zona?.nombreZona ?? row.zona?.codigoZona ?? String(row.zonaId) },
     {
       header: 'Estado',
-      accessor: (row: any) => {
+      accessor: (row) => {
         const estado = row.estado;
 
         if (estado === 'ACTIVO') {
@@ -120,7 +121,7 @@ export function Suministros() {
           </div>
           <Select label="Zona" value={draft.zonaId} options={[{ label: 'Todas', value: '' }, ...zonasOptions]} onChange={(e) => setDraft({ ...draft, zonaId: e.target.value })} />
           <Select label="Tipo cliente" value={draft.tipoCliente} options={[{ label: 'Todos', value: '' }, ...tipoClienteOptions]} onChange={(e) => setDraft({ ...draft, tipoCliente: e.target.value })} />
-          <Select label="Estado" value={draft.estado} options={[{ label: 'Todos', value: '' }, { label: 'Activo', value: 'ACTIVO' }, { label: 'Inactivo', value: 'INACTIVO' }]} onChange={(e) => setDraft({ ...draft, estado: e.target.value })} />
+          <Select label="Estado" value={draft.estado} options={[{ label: 'Todos', value: '' }, { label: 'Activo', value: 'ACTIVO' }, { label: 'Observado', value: 'OBSERVADO' }, { label: 'Inactivo', value: 'INACTIVO' }]} onChange={(e) => setDraft({ ...draft, estado: e.target.value })} />
           <div className="suministros-filterActions">
             <Button onClick={applyFilters} className="suministros-applyButton">Aplicar filtros</Button>
             <Button variant="secondary" onClick={clearFilters} className="suministros-clearButton">Limpiar filtros</Button>
@@ -155,43 +156,59 @@ export function SuministroForm() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false);
 
   const { data: zonasRes } = useAsync(() => crudService('zonas').list() as Promise<unknown>, []);
-  const zonas = extractRows(zonasRes ?? []);
-  const zonasOptions = zonas.map((z: any) => ({ label: z.nombreZona || z.codigoZona || `Zona ${z.id}`, value: String(z.id) }));
+  const zonas = extractRows<Zona>(zonasRes ?? []);
+  const zonasOptions = zonas.map((z) => ({ label: z.nombreZona || z.codigoZona || `Zona ${z.id}`, value: String(z.id) }));
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setLoading(true);
     setMessage('');
+    setIsError(false);
     try {
-      await crudService('suministros').create(form);
+      await suministrosService.create({ ...form, zonaId: Number(form.zonaId) });
       setMessage('Registro guardado correctamente.');
       setTimeout(() => navigate('/suministros'), 500);
-    } catch {
-      setMessage('No se pudo guardar. Revisá los datos o la API.');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+
+      if (status === 409 && data?.message) {
+        const msg = Array.isArray(data.message) ? data.message[0] : data.message;
+        setMessage(msg);
+        setIsError(true);
+      } else {
+        setMessage('No se pudo guardar. Revisá los datos e intentá nuevamente.');
+        setIsError(true);
+      }
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <p className="text-sm font-bold text-copper">Nuevo registro</p>
-        <h2 className="serif text-4xl font-bold text-enosa-950">Nuevo suministro</h2>
+    <form onSubmit={onSubmit} className="suministros-formPage">
+      <div className="suministros-formHeader">
+        <div>
+          <p>Nuevo registro</p>
+          <h2>Nuevo suministro</h2>
+          <span>Completá los datos del punto de suministro eléctrico.</span>
+        </div>
       </div>
-      <div className="grid gap-4 rounded-3xl bg-white p-6 shadow-panel md:grid-cols-2">
+      <div className="suministros-formCard">
         <Input label="Código suministro" required value={form.codigoSuministro} onChange={(e) => setForm({ ...form, codigoSuministro: e.target.value })} />
+        <p className="text-xs text-stitch-outline-variant -mt-2">El código de suministro debe ser único.</p>
         <Select label="Tipo cliente" required options={tipoClienteOptions} value={form.tipoCliente} onChange={(e) => setForm({ ...form, tipoCliente: e.target.value })} />
         <Input label="Dirección referencial" required value={form.direccionReferencial} onChange={(e) => setForm({ ...form, direccionReferencial: e.target.value })} />
         <Select label="Zona" required options={zonasOptions} value={form.zonaId} onChange={(e) => setForm({ ...form, zonaId: e.target.value })} />
         <Select label="Estado" required options={[{ label: 'Activo', value: 'ACTIVO' }, { label: 'Inactivo', value: 'INACTIVO' }]} value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} />
       </div>
-      {message && <Toast type={message.startsWith('No') ? 'error' : 'success'} message={message} />}
-      <div className="flex gap-3">
-        <Button disabled={loading}>{loading ? 'Guardando...' : 'Guardar'}</Button>
-        <Button type="button" variant="secondary" onClick={() => navigate(-1)}>Cancelar</Button>
+      {message && <Toast type={isError ? 'error' : 'success'} message={message} />}
+      <div className="suministros-formActions">
+        <Button disabled={loading} className="suministros-applyButton">{loading ? 'Guardando...' : 'Guardar suministro'}</Button>
+        <Button type="button" variant="secondary" className="suministros-clearButton" onClick={() => navigate(-1)}>Cancelar</Button>
       </div>
     </form>
   );
