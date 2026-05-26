@@ -716,6 +716,15 @@ input, select, textarea { outline: none; }
   font-weight: 700;
 }
 
+.stitch-chartError {
+  height: 292px;
+  display: grid;
+  place-items: center;
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 13px;
+}
+
 .dashboard-sectionHeader {
   display: flex;
   align-items: center;
@@ -2254,7 +2263,7 @@ input, select, textarea { outline: none; }
   .dashboard-kpis,
   .dashboard-filters { grid-template-columns: 1fr; }
   .filter-actions,
-  .dashboard-sectionHeader,
+  .dashboard-sectionHeader { align-items: stretch; flex-direction: column; }
   .zonas-formActions { align-items: stretch; flex-direction: column; }
   .lecturas-filtersGrid { grid-template-columns: 1fr; }
   .lecturas-searchField { grid-column: auto; }

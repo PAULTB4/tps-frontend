@@ -59,7 +59,6 @@ export function AppLayout() {
           <button className="app-menuButton" type="button" aria-label="Abrir menú" onClick={() => setSidebarOpen(true)}>
             <span className="material-symbols-outlined">menu</span>
           </button>
-          <div className="app-search"><span className="material-symbols-outlined">search</span><span>Buscar en SISCON...</span></div>
         </header>
         <div className="app-content">
           <EventAlert />

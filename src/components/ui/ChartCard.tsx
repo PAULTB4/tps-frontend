@@ -1,7 +1,16 @@
 import type React from 'react';
 
-type Props = { title: string; children: React.ReactNode; loading?: boolean };
+type Props = { title: string; children: React.ReactNode; loading?: boolean; error?: string };
 
-export function ChartCard({ title, children, loading }: Props) {
-  return <section className="stitch-chartCard"><div className="stitch-chartHeader"><h2>{title}</h2></div>{loading ? <div className="stitch-chartLoading">Cargando gráfico...</div> : <div className="stitch-chartBody">{children}</div>}</section>;
+export function ChartCard({ title, children, loading, error }: Props) {
+  return (
+    <section className="stitch-chartCard">
+      <div className="stitch-chartHeader"><h2>{title}</h2></div>
+      {loading
+        ? <div className="stitch-chartLoading">Cargando gráfico...</div>
+        : error
+          ? <div className="stitch-chartError">{error}</div>
+          : <div className="stitch-chartBody">{children}</div>}
+    </section>
+  );
 }

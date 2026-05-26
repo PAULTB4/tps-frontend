@@ -112,4 +112,10 @@ export type DashboardResumen = {
   lecturasObservadas: number;
 };
 
+export type ConsumoMensual = { mes: number; consumoKwh: number };
+export type ConsumoZona = { zona: string; total: number };
+export type ConsumoTipoCliente = { tipoCliente: string; total: number };
+export type TopSuministro = { codigoSuministro: string; zona: string; distrito: string; tipoCliente: string; consumoKwh: number; estado: string };
+export type IncidenciaTipo = { tipo: string; total: number };
+
 export type TableColumn<T> = { header: string; accessor: keyof T | ((row: T) => React.ReactNode); className?: string };
