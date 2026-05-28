@@ -6,7 +6,7 @@ export function Card({ title, value, subtitle, children, accent }: Props) {
   return (
     <section className={`stitch-card ${accent ? 'is-accent' : ''}`}>
       {title && <p className="stitch-cardLabel">{title}</p>}
-      {value && <h3 className="stitch-cardValue">{value}</h3>}
+      {value !== undefined && value !== null && <h3 className="stitch-cardValue">{value}</h3>}
       {subtitle && <p className="stitch-cardSub">{subtitle}</p>}
       {children}
     </section>

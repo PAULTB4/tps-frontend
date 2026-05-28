@@ -105,17 +105,29 @@ export type LecturaPreview = {
 };
 
 export type DashboardResumen = {
-  consumoTotalAnual: number;
-  promedioMensual: number;
-  zonaMayorConsumo: string;
-  totalSuministrosActivos: number;
-  lecturasObservadas: number;
+  totalLecturas: number;
+  consumoTotalKwh: number;
+  totalIncidencias: number;
+  medidoresActivos: number;
+  lecturasObservadas?: number;
 };
 
-export type ConsumoMensual = { mes: number; consumoKwh: number };
-export type ConsumoZona = { zona: string; total: number };
-export type ConsumoTipoCliente = { tipoCliente: string; total: number };
-export type TopSuministro = { codigoSuministro: string; zona: string; distrito: string; tipoCliente: string; consumoKwh: number; estado: string };
-export type IncidenciaTipo = { tipo: string; total: number };
+export type DashboardFilters = {
+  anioDesde?: string | number;
+  anioHasta?: string | number;
+  mes?: string | number;
+  zonaId?: string | number;
+  distrito?: string;
+  tipoCliente?: string;
+  estadoLectura?: string;
+  tipoIncidencia?: string;
+};
+
+export type ConsumoMensual = { anio?: number; mes: number; consumoKwh: number };
+export type ComparativoAnual = { anio: number; consumoKwh: number };
+export type ConsumoZona = { nombreZona: string; codigoZona?: string; consumoKwh: number };
+export type ConsumoTipoCliente = { tipoCliente: string; consumoKwh: number };
+export type TopSuministro = { codigoSuministro: string; nombreZona: string; distrito?: string; tipoCliente?: string; estado?: string; consumoKwh: number };
+export type IncidenciaTipo = { tipoIncidencia: string; estado?: string; total: number };
 
 export type TableColumn<T> = { header: string; accessor: keyof T | ((row: T) => React.ReactNode); className?: string };

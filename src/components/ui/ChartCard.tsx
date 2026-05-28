@@ -1,11 +1,14 @@
 import type React from 'react';
 
-type Props = { title: string; children: React.ReactNode; loading?: boolean; error?: string };
+type Props = { title: string; subtitle?: string; children: React.ReactNode; loading?: boolean; error?: string };
 
-export function ChartCard({ title, children, loading, error }: Props) {
+export function ChartCard({ title, subtitle, children, loading, error }: Props) {
   return (
     <section className="stitch-chartCard">
-      <div className="stitch-chartHeader"><h2>{title}</h2></div>
+      <div className="stitch-chartHeader">
+        <h2>{title}</h2>
+        {subtitle && <p className="stitch-chartSubtitle">{subtitle}</p>}
+      </div>
       {loading
         ? <div className="stitch-chartLoading">Cargando gráfico...</div>
         : error

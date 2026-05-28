@@ -1,4 +1,5 @@
 import { api } from './api';
+import { cleanParams } from '../utils/pagination';
 
 type ReportFilters = Record<string, string | number | undefined>;
 
@@ -13,11 +14,11 @@ function downloadBlob(data: Blob, filename: string) {
 
 export const reportesService = {
   async lecturasCsv(filters?: ReportFilters) {
-    const { data } = await api.get('/reportes/lecturas/csv', { params: filters, responseType: 'blob' });
+    const { data } = await api.get('/reportes/lecturas/csv', { params: cleanParams(filters), responseType: 'blob' });
     downloadBlob(data, 'lecturas-siscon-enosa.csv');
   },
   async consumoExcel(filters?: ReportFilters) {
-    const { data } = await api.get('/reportes/consumo/excel', { params: filters, responseType: 'blob' });
+    const { data } = await api.get('/reportes/consumo/excel', { params: cleanParams(filters), responseType: 'blob' });
     downloadBlob(data, 'consumo-siscon-enosa.xlsx');
   },
 };
